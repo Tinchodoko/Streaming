@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">RootEncoder streamer</string>
+  <string name="app_name">Tinchodoko Streaming</string>
   <string name="version">Version: %1$s</string>
   <!--Activities-->
   <string name="old_api">Old API (16 – 20)</string>
@@ -72,5 +72,4 @@
   <string name="camera_uvc">CameraUVC</string>
   <string name="bitmap">Bitmap</string>
   <string name="buffer">Buffer</string>
-
 </resources>
