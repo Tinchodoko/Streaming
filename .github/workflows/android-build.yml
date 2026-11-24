@@ -46,7 +46,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: debug-build-${{ github.run_number }}
-          name: Streaming Debug Build #${{ github.run_number }}
+          name: "Streaming Debug Build #${{ github.run_number }}"
           body: |
             Automated debug APK build from the `main` branch.
 
