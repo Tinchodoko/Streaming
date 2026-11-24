@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -29,9 +29,30 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
-      - name: Upload debug APK
+      - name: Prepare release APK
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/debug/*.apk "release/Streaming-debug-build-${GITHUB_RUN_NUMBER}.apk"
+
+      - name: Upload debug APK artifact
         uses: actions/upload-artifact@v5
         with:
           name: Streaming-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: release/*.apk
           if-no-files-found: error
+
+      - name: Publish APK to GitHub Releases
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: debug-build-${{ github.run_number }}
+          name: Streaming Debug Build #${{ github.run_number }}
+          body: |
+            Automated debug APK build from the `main` branch.
+
+            Commit: `${{ github.sha }}`
+
+            This is a test build, not a production-signed release.
+          files: release/*.apk
+          draft: false
+          prerelease: true
