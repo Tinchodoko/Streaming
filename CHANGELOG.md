@@ -1,3 +1,4 @@
+- #V15 — Disable automatic app data backups
 - #V12 — fix(ci): normalize Base64 secret whitespace correctly
 # Tinchodoko Streaming — Changelog
 
