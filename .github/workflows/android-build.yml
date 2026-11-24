@@ -1,10 +1,13 @@
-name: Android Build
+name: Streaming Android Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: streaming-android-release
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -12,10 +15,17 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Capture build metadata
+        shell: bash
+        run: |
+          echo "BUILD_NUMBER=$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+          echo "BUILD_CHANGE=$(git log -1 --pretty=%s)" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -26,33 +36,112 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+      - name: Prepare changelog
+        shell: bash
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            printf '# Tinchodoko Streaming — Changelog\n\n' > CHANGELOG.md
+          fi
+          printf '%s\n' "- #V${BUILD_NUMBER} — ${BUILD_CHANGE}" > CHANGELOG.new
+          cat CHANGELOG.md >> CHANGELOG.new
+          mv CHANGELOG.new CHANGELOG.md
 
-      - name: Prepare release APK
+      - name: Configure permanent Android release signing
+        env:
+          STREAMING_SIGNING_KEYSTORE_BASE64: ${{ secrets.STREAMING_SIGNING_KEYSTORE_BASE64 }}
+          STREAMING_SIGNING_STORE_PASSWORD: ${{ secrets.STREAMING_SIGNING_STORE_PASSWORD }}
+          STREAMING_SIGNING_KEY_ALIAS: ${{ secrets.STREAMING_SIGNING_KEY_ALIAS }}
+          STREAMING_SIGNING_KEY_PASSWORD: ${{ secrets.STREAMING_SIGNING_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for secret_name in STREAMING_SIGNING_KEYSTORE_BASE64 STREAMING_SIGNING_STORE_PASSWORD STREAMING_SIGNING_KEY_ALIAS STREAMING_SIGNING_KEY_PASSWORD; do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error::Missing GitHub Actions secret: ${secret_name}"
+              exit 1
+            fi
+          done
+          KEYSTORE_PATH="$RUNNER_TEMP/streaming-release.jks"
+          printf '%s' "$STREAMING_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          test -s "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          SIGNATURE=$(keytool -list -v -keystore "$KEYSTORE_PATH" -storepass "$STREAMING_SIGNING_STORE_PASSWORD" -alias "$STREAMING_SIGNING_KEY_ALIAS" | awk -F': ' '/SHA256:/{print $2; exit}')
+          if [ -z "$SIGNATURE" ]; then
+            echo "::error::Could not read signing certificate SHA-256."
+            exit 1
+          fi
+          echo "APP_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
+          echo "STREAMING_SIGNING_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+
+      - name: Build signed release APK
+        env:
+          STREAMING_SIGNING_STORE_PASSWORD: ${{ secrets.STREAMING_SIGNING_STORE_PASSWORD }}
+          STREAMING_SIGNING_KEY_ALIAS: ${{ secrets.STREAMING_SIGNING_KEY_ALIAS }}
+          STREAMING_SIGNING_KEY_PASSWORD: ${{ secrets.STREAMING_SIGNING_KEY_PASSWORD }}
+        run: ./gradlew :app:assembleRelease -PstreamingVersionCode="$BUILD_NUMBER" -PstreamingVersionName="1.0.$BUILD_NUMBER" --no-daemon --stacktrace
+
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/apk-signature.txt"
+          EXPECTED="$(printf '%s' "$APP_SIGNATURE" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          ACTUAL="$(sed -nE 's/.*certificate SHA-256 digest: ([0-9A-Fa-f:]+).*/\1/p' "$RUNNER_TEMP/apk-signature.txt" | head -n 1 | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if [ -z "$ACTUAL" ] || [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::APK certificate does not match the permanent Streaming signing key."
+            exit 1
+          fi
+          echo "Permanent Streaming signature verified."
+
+      - name: Prepare APK and metadata
+        shell: bash
         run: |
           mkdir -p release
-          cp app/build/outputs/apk/debug/*.apk "release/Streaming-debug-build-${GITHUB_RUN_NUMBER}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "release/Streaming-v1.0.${BUILD_NUMBER}.apk"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          build = int(os.environ["BUILD_NUMBER"])
+          Path("release/update.json").write_text(json.dumps({
+              "app": "Tinchodoko Streaming",
+              "package": "com.tinchodoko.streaming",
+              "version": f"1.0.{build}",
+              "versionCode": build,
+              "build": build,
+              "tag": f"v{build}",
+              "apk_url": f"https://github.com/Tinchodoko/Streaming/releases/download/v{build}/Streaming-v1.0.{build}.apk"
+          }, indent=2) + "\n", encoding="utf-8")
+          PY
 
-      - name: Upload debug APK artifact
+      - name: Upload signed APK artifact
         uses: actions/upload-artifact@v5
         with:
-          name: Streaming-debug
-          path: release/*.apk
+          name: Streaming-v1.0.${{ github.run_number }}-release
+          path: release/*
           if-no-files-found: error
 
-      - name: Publish APK to GitHub Releases
-        if: github.ref == 'refs/heads/main'
+      - name: Commit successful build changelog and update manifest
+        shell: bash
+        run: |
+          cp release/update.json update.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md update.json
+          git diff --cached --quiet || git commit -m "chore(build): record #V${BUILD_NUMBER} [skip ci]"
+          git push
+
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: debug-build-${{ github.run_number }}
-          name: "Streaming Debug Build #${{ github.run_number }}"
-          body: |
-            Automated debug APK build from the `main` branch.
-
-            Commit: `${{ github.sha }}`
-
-            This is a test build, not a production-signed release.
-          files: release/*.apk
+          tag_name: v${{ github.run_number }}
+          target_commitish: main
+          name: Tinchodoko Streaming V1.0.${{ github.run_number }}
+          body_path: CHANGELOG.md
+          files: release/Streaming-v1.0.${{ github.run_number }}.apk
           draft: false
-          prerelease: true
+          prerelease: false
+          fail_on_unmatched_files: true
