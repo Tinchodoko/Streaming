@@ -45,6 +45,12 @@ jobs:
           printf '%s\n' "- #V${BUILD_NUMBER} — ${BUILD_CHANGE}" > CHANGELOG.new
           cat CHANGELOG.md >> CHANGELOG.new
           mv CHANGELOG.new CHANGELOG.md
+          if [ ! -f .github/releases ]; then
+            printf '%s\n' '# Tinchodoko Streaming — Releases' '' > .github/releases
+          fi
+          printf '%s\n' "#V${BUILD_NUMBER} — ${BUILD_CHANGE}" > .github/releases.new
+          cat .github/releases >> .github/releases.new
+          mv .github/releases.new .github/releases
 
       - name: Configure permanent Android release signing
         env:
@@ -155,7 +161,7 @@ jobs:
           cp release/update.json update.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md update.json
+          git add CHANGELOG.md .github/releases update.json
           git diff --cached --quiet || git commit -m "chore(build): record #V${BUILD_NUMBER} [skip ci]"
           git push
 
