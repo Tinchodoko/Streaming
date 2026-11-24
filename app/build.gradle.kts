@@ -3,19 +3,31 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.streamer"
+  namespace = "com.tinchodoko.streaming"
   compileSdk = 37
 
   defaultConfig {
-    applicationId = "com.pedro.streamer"
+    applicationId = "com.tinchodoko.streaming"
     minSdk = 16
     targetSdk = 37
-    versionCode = project.version.toString().replace(".", "").toInt()
-    versionName = project.version.toString()
+    versionCode = providers.gradleProperty("streamingVersionCode").orElse("1").get().toInt()
+    versionName = providers.gradleProperty("streamingVersionName").orElse("1.0.0").get()
     multiDexEnabled = true
+  }
+  signingConfigs {
+    create("release") {
+      val keystorePath = System.getenv("STREAMING_SIGNING_KEYSTORE_PATH")
+      if (!keystorePath.isNullOrBlank()) {
+        storeFile = file(keystorePath)
+      }
+      storePassword = System.getenv("STREAMING_SIGNING_STORE_PASSWORD")
+      keyAlias = System.getenv("STREAMING_SIGNING_KEY_ALIAS")
+      keyPassword = System.getenv("STREAMING_SIGNING_KEY_PASSWORD")
+    }
   }
   buildTypes {
     release {
+      signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
