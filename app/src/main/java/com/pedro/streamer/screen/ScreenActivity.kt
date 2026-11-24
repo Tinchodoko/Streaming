@@ -158,8 +158,7 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       toast("Screen service is not ready. Please try again.")
       return
     }
-    val usesMicrophone = service.getCurrentAudioSource() is MicrophoneSource ||
-        service.getCurrentAudioSource() is MixAudioSource
+    val usesMicrophone = service.requiresMicrophonePermission()
     if (usesMicrophone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
       ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) !=
       PackageManager.PERMISSION_GRANTED

@@ -66,11 +66,11 @@ class ScreenService: Service(), ConnectChecker {
   private var callback: ConnectChecker? = null
   private val width = 640
   private val height = 480
-  private val vBitrate = 1200 * 1000
+  private val vBitrate = 800 * 1000
   private var rotation = 90 //0 for landscape or 90 for portrait
-  private val sampleRate = 32000
-  private val isStereo = true
-  private val aBitrate = 128 * 1000
+  private val sampleRate = 44100
+  private val isStereo = false
+  private val aBitrate = 64 * 1000
   private var prepared = false
   private var recordPath = ""
   private var selectedAudioSource: Int = R.id.audio_source_microphone
@@ -83,21 +83,77 @@ class ScreenService: Service(), ConnectChecker {
       val channel = NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
     }
-    genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource()).apply {
-      //This is important to keep a constant fps because media projection only produce fps if the screen change
+    genericStream = GenericStream(baseContext, this, NoVideoSource(), NoAudioSource()).apply {
+      // MediaProjection only produces frames when the screen changes. Keep a stable frame cadence.
       getGlInterface().setForceRender(true, 15)
     }
-    prepared = try {
-      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-          genericStream.prepareAudio(sampleRate, isStereo, aBitrate,
-            echoCanceler = true,
-            noiseSuppressor = true
-          )
-    } catch (_: IllegalArgumentException) {
-      false
+    // Do not initialize the microphone here: Android runtime permission is requested only
+    // when the user starts screen capture. Prepare a silent AAC track and attach the
+    // selected real audio source after MediaProjection permission has been granted.
+    INSTANCE = this
+    prepared = prepareEncoders()
+    if (!prepared) {
+      toast("No se pudieron preparar los codificadores. Consulta el diagnóstico de SCREEN.")
     }
-    if (prepared) INSTANCE = this
-    else toast("Invalid audio or video parameters, prepare failed")
+  }
+
+  private data class VideoProfile(val width: Int, val height: Int, val fps: Int, val bitrate: Int)
+
+  /**
+   * Try conservative H.264/AAC profiles in descending quality order.
+   * Audio is initially prepared with NoAudioSource so no microphone permission
+   * or hardware AudioRecord is needed until the user chooses an audio source.
+   */
+  private fun prepareEncoders(): Boolean {
+    val videoProfiles = listOf(
+      VideoProfile(width, height, 20, vBitrate),
+      VideoProfile(480, 360, 20, 500 * 1000),
+      VideoProfile(320, 240, 15, 300 * 1000)
+    )
+    var videoReady = false
+    for (profile in videoProfiles) {
+      try {
+        val result = genericStream.prepareVideo(
+          profile.width,
+          profile.height,
+          profile.bitrate,
+          fps = profile.fps,
+          rotation = rotation
+        )
+        if (result) {
+          Log.i(TAG, "Screen video encoder ready: ${profile.width}x${profile.height} @ ${profile.fps}fps, ${profile.bitrate}bps")
+          videoReady = true
+          break
+        }
+        Log.w(TAG, "Screen video profile rejected: ${profile.width}x${profile.height} @ ${profile.fps}fps")
+      } catch (error: Exception) {
+        Log.w(TAG, "Screen video profile failed: ${profile.width}x${profile.height}", error)
+      }
+    }
+    if (!videoReady) {
+      Log.e(TAG, "SCREEN diagnostic: no compatible H.264 video profile could be prepared")
+      return false
+    }
+
+    val audioRates = listOf(sampleRate, 48000, 32000).distinct()
+    for (rate in audioRates) {
+      try {
+        if (genericStream.prepareAudio(rate, isStereo, aBitrate)) {
+          Log.i(TAG, "Screen AAC encoder ready: ${rate}Hz, mono, ${aBitrate}bps")
+          return true
+        }
+        Log.w(TAG, "Screen AAC profile rejected: ${rate}Hz mono")
+      } catch (error: Exception) {
+        Log.w(TAG, "Screen AAC profile failed: ${rate}Hz mono", error)
+      }
+    }
+    Log.e(TAG, "SCREEN diagnostic: H.264 is ready but no compatible AAC audio profile could be prepared")
+    return false
+  }
+
+  fun requiresMicrophonePermission(): Boolean {
+    return selectedAudioSource == R.id.audio_source_microphone ||
+        selectedAudioSource == R.id.audio_source_mix
   }
 
   private fun keepAliveTrick() {
@@ -153,17 +209,24 @@ class ScreenService: Service(), ConnectChecker {
   }
 
   fun prepareStream(resultCode: Int, data: Intent): Boolean {
+    if (!prepared) {
+      toast("Los codificadores de SCREEN no están listos. Revisa el diagnóstico en el registro.")
+      return false
+    }
     keepAliveTrick()
     stopStream()
     mediaProjection?.stop()
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data) ?: throw IllegalStateException("get MediaProjection failed")
-    this.mediaProjection = mediaProjection
-    val screenSource = ScreenSource(applicationContext, mediaProjection)
+    val projection = mediaProjectionManager.getMediaProjection(resultCode, data)
+      ?: throw IllegalStateException("No se pudo obtener el permiso de captura de pantalla")
+    this.mediaProjection = projection
     return try {
-      genericStream.changeVideoSource(screenSource)
+      genericStream.changeVideoSource(ScreenSource(applicationContext, projection))
+      // The selected source is attached only now, after Android permission checks.
       toggleAudioSource(selectedAudioSource)
       true
-    } catch (_: IllegalArgumentException) {
+    } catch (error: Exception) {
+      Log.e(TAG, "SCREEN diagnostic: failed to attach screen/audio source", error)
+      toast("No se pudo inicializar la fuente de captura/audio: ${error.message ?: "error desconocido"}")
       false
     }
   }
