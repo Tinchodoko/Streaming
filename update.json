@@ -1,9 +1,9 @@
 {
   "app": "Tinchodoko Streaming",
   "package": "com.tinchodoko.streaming",
-  "version": "1.0.26",
-  "versionCode": 26,
-  "build": 26,
-  "tag": "v26",
-  "apk_url": "https://github.com/Tinchodoko/Streaming/releases/download/v26/Streaming-v1.0.26.apk"
+  "version": "1.0.29",
+  "versionCode": 29,
+  "build": 29,
+  "tag": "v29",
+  "apk_url": "https://github.com/Tinchodoko/Streaming/releases/download/v29/Streaming-v1.0.29.apk"
 }
