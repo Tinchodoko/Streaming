@@ -1,0 +1,5 @@
+# Tinchodoko Streaming — Releases
+
+#V15 — Desactivar las copias de seguridad automáticas de los datos de la aplicación.
+#V12 — Corregir la normalización de espacios en el secreto Base64 de firma para GitHub Actions.
+#V0 — Fork inicial de RootEncoder.
