@@ -15,7 +15,9 @@
  */
 package com.pedro.streamer.screen
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -26,6 +28,7 @@ import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.sources.audio.InternalAudioSource
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
@@ -42,14 +45,7 @@ import com.pedro.streamer.utils.updateMenuColor
  *
  * More documentation see:
  * [com.pedro.library.base.DisplayBase]
- * Support RTMP, RTSP and SRT with commons features
  * [com.pedro.library.generic.GenericDisplay]
- * Support RTSP with all RTSP features
- * [com.pedro.library.rtsp.RtspDisplay]
- * Support RTMP with all RTMP features
- * [com.pedro.library.rtmp.RtmpDisplay]
- * Support SRT with all SRT features
- * [com.pedro.library.srt.SrtDisplay]
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class ScreenActivity : AppCompatActivity(), ConnectChecker {
@@ -63,27 +59,53 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   private lateinit var etUrl: EditText
   private var currentAudioSource: MenuItem? = null
   private var action = Action.NONE
+  private var pendingAudioSource: Int? = null
 
-  private val activityResultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-    val data = result.data
-    if (data != null && result.resultCode == RESULT_OK) {
-      val screenService = ScreenService.INSTANCE
-      if (screenService != null) {
-        if (screenService.prepareStream(result.resultCode, data)) {
-          when (action) {
-            Action.STREAM -> startStream()
-            Action.RECORD -> toggleRecord()
-            else -> {}
+  private val microphonePermissionLauncher =
+    registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+      val sourceToApply = pendingAudioSource
+      pendingAudioSource = null
+      if (granted) {
+        if (sourceToApply != null) {
+          try {
+            ScreenService.INSTANCE?.toggleAudioSource(sourceToApply)
+            currentAudioSource?.let { selected ->
+              selected.isChecked = true
+            }
+            invalidateOptionsMenu()
+          } catch (e: IllegalArgumentException) {
+            toast("Change source error: ${e.message}")
           }
-        } else {
-          toast("Prepare stream failed")
         }
+        if (action != Action.NONE) launchScreenCapture()
+      } else {
+        action = Action.NONE
+        toast("Microphone permission denied. Select Internal Audio to continue without the microphone.")
       }
-    } else {
-      toast("No permissions available")
-      button.setImageResource(R.drawable.stream_icon)
     }
-  }
+
+  private val activityResultContract =
+    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+      val data = result.data
+      if (data != null && result.resultCode == RESULT_OK) {
+        val screenService = ScreenService.INSTANCE
+        if (screenService != null) {
+          if (screenService.prepareStream(result.resultCode, data)) {
+            when (action) {
+              Action.STREAM -> startStream()
+              Action.RECORD -> toggleRecord()
+              else -> {}
+            }
+          } else {
+            toast("Prepare stream failed")
+          }
+        }
+      } else {
+        toast("Screen capture permission was not granted")
+        button.setImageResource(R.drawable.stream_icon)
+      }
+      action = Action.NONE
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -94,7 +116,6 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     etUrl = findViewById(R.id.et_rtp_url)
     bRecord = findViewById(R.id.b_record)
     val screenService = ScreenService.INSTANCE
-    //No streaming/recording start service
     if (screenService == null) {
       startService(Intent(this, ScreenService::class.java))
     }
@@ -113,8 +134,7 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       if (service != null) {
         service.setCallback(this)
         if (!service.isStreaming() && !service.isRecording()) {
-          action = Action.STREAM
-          activityResultContract.launch(service.sendIntent())
+          requestScreenAction(Action.STREAM)
         } else if (!service.isStreaming()) {
           startStream()
         } else {
@@ -127,11 +147,39 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       if (service != null) {
         service.setCallback(this)
         if (!service.isStreaming() && !service.isRecording()) {
-          action = Action.RECORD
-          activityResultContract.launch(service.sendIntent())
+          requestScreenAction(Action.RECORD)
         } else toggleRecord()
       }
     }
+  }
+
+  private fun requestScreenAction(requestedAction: Action) {
+    val service = ScreenService.INSTANCE ?: run {
+      toast("Screen service is not ready. Please try again.")
+      return
+    }
+    val usesMicrophone = service.getCurrentAudioSource() is MicrophoneSource ||
+        service.getCurrentAudioSource() is MixAudioSource
+    if (usesMicrophone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+      ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) !=
+      PackageManager.PERMISSION_GRANTED
+    ) {
+      action = requestedAction
+      microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    } else {
+      action = requestedAction
+      launchScreenCapture()
+    }
+  }
+
+  private fun launchScreenCapture() {
+    val service = ScreenService.INSTANCE
+    if (service == null) {
+      action = Action.NONE
+      toast("Screen service is not ready. Please try again.")
+      return
+    }
+    activityResultContract.launch(service.sendIntent())
   }
 
   private fun startStream() {
@@ -148,15 +196,9 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   private fun toggleRecord() {
     ScreenService.INSTANCE?.toggleRecord { state ->
       when (state) {
-        RecordController.Status.STARTED -> {
-          bRecord.setImageResource(R.drawable.pause_icon)
-        }
-        RecordController.Status.STOPPED -> {
-          bRecord.setImageResource(R.drawable.record_icon)
-        }
-        RecordController.Status.RECORDING -> {
-          bRecord.setImageResource(R.drawable.stop_icon)
-        }
+        RecordController.Status.STARTED -> bRecord.setImageResource(R.drawable.pause_icon)
+        RecordController.Status.STOPPED -> bRecord.setImageResource(R.drawable.record_icon)
+        RecordController.Status.RECORDING -> bRecord.setImageResource(R.drawable.stop_icon)
         else -> {}
       }
     }
@@ -175,18 +217,31 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
-    try {
-      when (item.itemId) {
-        R.id.audio_source_microphone, R.id.audio_source_internal, R.id.audio_source_mix -> {
-          val service = ScreenService.INSTANCE
-          if (service != null) {
+    when (item.itemId) {
+      R.id.audio_source_microphone, R.id.audio_source_internal, R.id.audio_source_mix -> {
+        val service = ScreenService.INSTANCE
+        if (service != null) {
+          if (item.itemId == R.id.audio_source_microphone ||
+            item.itemId == R.id.audio_source_mix
+          ) {
+            val granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+              pendingAudioSource = item.itemId
+              microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+              return true
+            }
+          }
+          try {
             service.toggleAudioSource(item.itemId)
             currentAudioSource = item.updateMenuColor(this, currentAudioSource)
+          } catch (e: IllegalArgumentException) {
+            toast("Change source error: ${e.message}")
           }
         }
+        return true
       }
-    } catch (e: IllegalArgumentException) {
-      toast("Change source error: ${e.message}")
     }
     return super.onOptionsItemSelected(item)
   }
@@ -196,8 +251,6 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     val screenService = ScreenService.INSTANCE
     if (screenService != null && !screenService.isStreaming() && !screenService.isRecording()) {
       screenService.setCallback(null)
-      activityResultContract.unregister()
-      //stop service only if no streaming or recording
       if (isFinishing) stopService(Intent(this, ScreenService::class.java))
     }
   }
