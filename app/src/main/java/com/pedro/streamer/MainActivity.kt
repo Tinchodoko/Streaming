@@ -138,10 +138,12 @@ class MainActivity : AppCompatActivity() {
   private fun showTab(showInfo: Boolean) {
     homeContent.visibility = if (showInfo) android.view.View.GONE else android.view.View.VISIBLE
     infoContent.visibility = if (showInfo) android.view.View.VISIBLE else android.view.View.GONE
-    findViewById<Button>(R.id.tab_home).backgroundTintList =
-      ContextCompat.getColorStateList(this, if (showInfo) android.R.color.darker_gray else R.color.appColor)
-    findViewById<Button>(R.id.tab_info).backgroundTintList =
-      ContextCompat.getColorStateList(this, if (showInfo) R.color.appColor else android.R.color.darker_gray)
+    val homeTab = findViewById<Button>(R.id.tab_home)
+    val infoTab = findViewById<Button>(R.id.tab_info)
+    homeTab.setBackgroundResource(R.drawable.button_outline_black)
+    infoTab.setBackgroundResource(R.drawable.button_outline_black)
+    homeTab.setTextColor(ContextCompat.getColor(this, R.color.black))
+    infoTab.setTextColor(ContextCompat.getColor(this, R.color.black))
   }
 
   @Suppress("DEPRECATION")

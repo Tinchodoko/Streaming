@@ -116,7 +116,10 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:layout_marginTop="14dp"
-              android:text="BUSCAR ACTUALIZACIÓN" />
+              android:text="BUSCAR ACTUALIZACIÓN"
+              android:background="@drawable/button_outline_black"
+              android:backgroundTint="@null"
+              android:textColor="@color/black" />
         </LinearLayout>
 
         <LinearLayout
@@ -209,7 +212,10 @@
         android:layout_weight="1"
         android:layout_marginEnd="4dp"
         android:text="HOME"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:background="@drawable/button_outline_black"
+        android:backgroundTint="@null"
+        android:textColor="@color/black" />
 
     <Button
         android:id="@+id/tab_info"
@@ -219,6 +225,8 @@
         android:layout_marginStart="4dp"
         android:text="INFO"
         android:textStyle="bold"
-        android:backgroundTint="#777777" />
+        android:background="@drawable/button_outline_black"
+        android:backgroundTint="@null"
+        android:textColor="@color/black" />
   </LinearLayout>
 </LinearLayout>

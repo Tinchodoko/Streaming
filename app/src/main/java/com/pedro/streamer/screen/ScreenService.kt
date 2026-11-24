@@ -18,6 +18,7 @@ package com.pedro.streamer.screen
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.media.projection.MediaProjection
@@ -55,6 +56,7 @@ class ScreenService: Service(), ConnectChecker {
     private const val TAG = "DisplayService"
     private const val CHANNEL_ID = "DisplayStreamChannel"
     const val NOTIFY_ID = 123456
+    private const val ACTION_STOP_CAPTURE = "com.pedro.streamer.screen.STOP_CAPTURE"
     var INSTANCE: ScreenService? = null
   }
 
@@ -158,12 +160,44 @@ class ScreenService: Service(), ConnectChecker {
   }
 
   private fun keepAliveTrick() {
+    showCaptureNotification()
+  }
+
+  private fun showCaptureNotification() {
+    val stopIntent = Intent(this, ScreenService::class.java).setAction(ACTION_STOP_CAPTURE)
+    val stopPendingIntent = PendingIntent.getService(
+      this, NOTIFY_ID, stopIntent,
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    val status = when {
+      genericStream.isStreaming && genericStream.isRecording -> "Transmitiendo y grabando pantalla"
+      genericStream.isStreaming -> "Transmitiendo pantalla"
+      genericStream.isRecording -> "Grabando pantalla"
+      else -> "Captura de pantalla activa"
+    }
     val notification = NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(R.drawable.notification_icon)
+      .setContentTitle("Tinchodoko Streaming")
+      .setContentText(status)
       .setSilent(true)
-      .setOngoing(false)
+      .setOngoing(true)
+      .addAction(0, "DETENER", stopPendingIntent)
       .build()
-    startForeground(1, notification)
+    startForeground(NOTIFY_ID, notification)
+  }
+
+  private fun stopCaptureFromNotification() {
+    Log.i(TAG, "SCREEN capture stopped from notification")
+    if (genericStream.isRecording) {
+      genericStream.stopRecord()
+      if (recordPath.isNotBlank()) PathUtils.updateGallery(this, recordPath)
+    }
+    if (genericStream.isStreaming) genericStream.stopStream()
+    mediaProjection?.stop()
+    mediaProjection = null
+    notificationManager?.cancel(NOTIFY_ID)
+    stopForeground(true)
+    stopSelf()
   }
 
   override fun onBind(p0: Intent?): IBinder? {
@@ -171,7 +205,11 @@ class ScreenService: Service(), ConnectChecker {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.i(TAG, "RTP Display service started")
+    if (intent?.action == ACTION_STOP_CAPTURE) {
+      stopCaptureFromNotification()
+      return START_NOT_STICKY
+    }
+    Log.i(TAG, "SCREEN service started")
     return START_STICKY
   }
 
@@ -190,7 +228,11 @@ class ScreenService: Service(), ConnectChecker {
   fun stopStream() {
     if (genericStream.isStreaming) {
       genericStream.stopStream()
-      notificationManager?.cancel(NOTIFY_ID)
+      if (genericStream.isRecording) showCaptureNotification()
+      else {
+        notificationManager?.cancel(NOTIFY_ID)
+        stopForeground(true)
+      }
     }
   }
 
@@ -274,15 +316,24 @@ class ScreenService: Service(), ConnectChecker {
         }
       }
       state(RecordController.Status.STARTED)
+      showCaptureNotification()
     } else {
       genericStream.stopRecord()
       state(RecordController.Status.STOPPED)
       PathUtils.updateGallery(this, recordPath)
+      if (genericStream.isStreaming) showCaptureNotification()
+      else {
+        notificationManager?.cancel(NOTIFY_ID)
+        stopForeground(true)
+      }
     }
   }
 
   fun startStream(endpoint: String) {
-    if (!genericStream.isStreaming) genericStream.startStream(endpoint)
+    if (!genericStream.isStreaming) {
+      genericStream.startStream(endpoint)
+      showCaptureNotification()
+    }
   }
 
   override fun onConnectionStarted(url: String) {

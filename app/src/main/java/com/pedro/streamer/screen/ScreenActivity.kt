@@ -182,8 +182,15 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   }
 
   private fun startStream() {
+    val endpoint = etUrl.text.toString().trim()
+    val supported = endpoint.startsWith("rtmp://", ignoreCase = true) ||
+        endpoint.startsWith("rtsp://", ignoreCase = true) ||
+        endpoint.startsWith("srt://", ignoreCase = true)
+    if (!supported) {
+      toast("Protocolo no compatible. Usa rtmp://, rtsp:// o srt://")
+      return
+    }
     button.setImageResource(R.drawable.stream_stop_icon)
-    val endpoint = etUrl.text.toString()
     ScreenService.INSTANCE?.startStream(endpoint)
   }
 
@@ -243,6 +250,13 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       }
     }
     return super.onOptionsItemSelected(item)
+  }
+
+  override fun onResume() {
+    super.onResume()
+    val service = ScreenService.INSTANCE
+    bRecord.setImageResource(if (service?.isRecording() == true) R.drawable.stop_icon else R.drawable.record_icon)
+    button.setImageResource(if (service?.isStreaming() == true) R.drawable.stream_stop_icon else R.drawable.stream_icon)
   }
 
   override fun onDestroy() {
