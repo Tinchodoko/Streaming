@@ -106,6 +106,7 @@ class MainActivity : AppCompatActivity() {
 
     findViewById<Button>(R.id.tab_home).setOnClickListener { showTab(false) }
     findViewById<Button>(R.id.tab_info).setOnClickListener { showTab(true) }
+    showTab(false)
     findViewById<android.view.View>(R.id.link_github).setOnClickListener {
       openUrl(REPOSITORY_URL)
     }
