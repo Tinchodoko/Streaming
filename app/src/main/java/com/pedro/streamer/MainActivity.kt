@@ -17,7 +17,6 @@ package com.pedro.streamer
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -26,8 +25,9 @@ import android.os.Bundle
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.GridView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.pedro.streamer.file.FromFileActivity
 import com.pedro.streamer.oldapi.OldApiActivity
 import com.pedro.streamer.rotation.RotationActivity
@@ -41,17 +41,21 @@ class MainActivity : AppCompatActivity() {
 
   private lateinit var list: GridView
   private val activities: MutableList<ActivityLink> = mutableListOf()
+  private var pendingIntent: Intent? = null
 
-  private val permissions = mutableListOf(
-    Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-  ).apply {
-    if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-      this.add(Manifest.permission.POST_NOTIFICATIONS)
+  private val cameraPermissionsLauncher =
+    registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+      val granted = result[Manifest.permission.CAMERA] == true &&
+          result[Manifest.permission.RECORD_AUDIO] == true
+      val intent = pendingIntent
+      pendingIntent = null
+      if (granted && intent != null) {
+        startActivity(intent)
+        transitionAnim(false)
+      } else {
+        toast("Camera and microphone permissions are required for camera streaming")
+      }
     }
-    if (Build.VERSION.SDK_INT >= VERSION_CODES.CINNAMON_BUN) {
-      this.add(Manifest.permission.ACCESS_LOCAL_NETWORK)
-    }
-  }.toTypedArray()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -63,7 +67,6 @@ class MainActivity : AppCompatActivity() {
     list = findViewById(R.id.list)
     createList()
     setListAdapter(activities)
-    requestPermissions()
   }
 
   @Suppress("DEPRECATION")
@@ -73,12 +76,6 @@ class MainActivity : AppCompatActivity() {
       overrideActivityTransition(type, R.anim.slide_in, R.anim.slide_out)
     } else {
       overridePendingTransition(R.anim.slide_in, R.anim.slide_out)
-    }
-  }
-
-  private fun requestPermissions() {
-    if (!hasPermissions(this)) {
-      ActivityCompat.requestPermissions(this, permissions, 1)
     }
   }
 
@@ -114,19 +111,42 @@ class MainActivity : AppCompatActivity() {
     list.adapter = ImageAdapter(activities)
     list.onItemClickListener =
       OnItemClickListener { _, _, position, _ ->
-        if (hasPermissions(this)) {
-          val link = activities[position]
-          val minSdk = link.minSdk
-          if (Build.VERSION.SDK_INT >= minSdk) {
-            startActivity(link.intent)
-            transitionAnim(false)
-          } else {
-            showMinSdkError(minSdk)
-          }
+        val link = activities[position]
+        if (Build.VERSION.SDK_INT < link.minSdk) {
+          showMinSdkError(link.minSdk)
         } else {
-          showPermissionsErrorAndRequest()
+          openActivity(link.intent)
         }
       }
+  }
+
+  private fun openActivity(intent: Intent) {
+    val className = intent.component?.className
+    val requiresCamera = className == OldApiActivity::class.java.name ||
+        className == RotationActivity::class.java.name
+    if (!requiresCamera || Build.VERSION.SDK_INT < VERSION_CODES.M) {
+      startActivity(intent)
+      transitionAnim(false)
+      return
+    }
+
+    val cameraGranted = ContextCompat.checkSelfPermission(
+      this, Manifest.permission.CAMERA
+    ) == PackageManager.PERMISSION_GRANTED
+    val microphoneGranted = ContextCompat.checkSelfPermission(
+      this, Manifest.permission.RECORD_AUDIO
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if (cameraGranted && microphoneGranted) {
+      startActivity(intent)
+      transitionAnim(false)
+    } else {
+      pendingIntent = intent
+      val requested = mutableListOf<String>()
+      if (!cameraGranted) requested.add(Manifest.permission.CAMERA)
+      if (!microphoneGranted) requested.add(Manifest.permission.RECORD_AUDIO)
+      cameraPermissionsLauncher.launch(requested.toTypedArray())
+    }
   }
 
   private fun showMinSdkError(minSdk: Int) {
@@ -136,23 +156,5 @@ class MainActivity : AppCompatActivity() {
       else -> "JELLY_BEAN"
     }
     toast("You need min Android $named (API $minSdk)")
-  }
-
-  private fun showPermissionsErrorAndRequest() {
-    toast("You need permissions before")
-    requestPermissions()
-  }
-
-  private fun hasPermissions(context: Context): Boolean {
-    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
-      for (permission in permissions) {
-        if (ActivityCompat.checkSelfPermission(context, permission)
-          != PackageManager.PERMISSION_GRANTED
-        ) {
-          return false
-        }
-      }
-    }
-    return true
   }
 }
