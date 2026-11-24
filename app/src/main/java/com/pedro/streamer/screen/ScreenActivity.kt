@@ -192,7 +192,12 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       toast("Screen service is not ready. Please try again.")
       return
     }
-    activityResultContract.launch(service.sendIntent())
+    try {
+      activityResultContract.launch(service.sendIntent())
+    } catch (error: Exception) {
+      action = Action.NONE
+      toast("No se pudo solicitar la captura de pantalla: ${error.message ?: "error desconocido"}")
+    }
   }
 
   private fun startStream() {
@@ -204,8 +209,8 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       toast("Protocolo no compatible. Usa rtmp://, rtsp:// o srt://")
       return
     }
-    button.setImageResource(R.drawable.stream_stop_icon)
-    ScreenService.INSTANCE?.startStream(endpoint)
+    val started = ScreenService.INSTANCE?.startStream(endpoint) == true
+    button.setImageResource(if (started) R.drawable.stream_stop_icon else R.drawable.stream_icon)
   }
 
   private fun stopStream() {
@@ -256,8 +261,8 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
           try {
             service.selectAudioSource(item.itemId)
             currentAudioSource = item.updateMenuColor(this, currentAudioSource)
-          } catch (e: IllegalArgumentException) {
-            toast("Change source error: ${e.message}")
+          } catch (e: Exception) {
+            toast("No se pudo cambiar la fuente de audio: ${e.message ?: "error desconocido"}")
           }
         }
         return true

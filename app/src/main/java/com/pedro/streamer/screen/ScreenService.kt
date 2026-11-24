@@ -340,34 +340,46 @@ class ScreenService: Service(), ConnectChecker {
   fun toggleAudioSource(itemId: Int) = selectAudioSource(itemId)
 
   fun toggleRecord(state: (RecordController.Status) -> Unit) {
-    if (!genericStream.isRecording) {
-      val folder = PathUtils.getRecordPath()
-      if (!folder.exists()) folder.mkdir()
-      val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-      recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
-      genericStream.startRecord(recordPath) { status ->
-        if (status == RecordController.Status.RECORDING) {
-          state(RecordController.Status.RECORDING)
+    try {
+      if (!genericStream.isRecording) {
+        val folder = PathUtils.getRecordPath()
+        if (!folder.exists()) folder.mkdirs()
+        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+        recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+        genericStream.startRecord(recordPath) { status ->
+          if (status == RecordController.Status.RECORDING) {
+            state(RecordController.Status.RECORDING)
+          }
+        }
+        state(RecordController.Status.STARTED)
+        showCaptureNotification()
+      } else {
+        genericStream.stopRecord()
+        state(RecordController.Status.STOPPED)
+        PathUtils.updateGallery(this, recordPath)
+        if (genericStream.isStreaming || mediaProjection != null) showCaptureNotification()
+        else {
+          notificationManager?.cancel(NOTIFY_ID)
+          stopForeground(true)
         }
       }
-      state(RecordController.Status.STARTED)
-      showCaptureNotification()
-    } else {
-      genericStream.stopRecord()
-      state(RecordController.Status.STOPPED)
-      PathUtils.updateGallery(this, recordPath)
-      if (genericStream.isStreaming || mediaProjection != null) showCaptureNotification()
-      else {
-        notificationManager?.cancel(NOTIFY_ID)
-        stopForeground(true)
-      }
+    } catch (error: Exception) {
+      Log.e(TAG, "SCREEN diagnostic: recording operation failed", error)
+      state(if (genericStream.isRecording) RecordController.Status.RECORDING else RecordController.Status.STOPPED)
+      toast("No se pudo iniciar/detener la grabación: ${error.message ?: "error desconocido"}")
     }
   }
 
-  fun startStream(endpoint: String) {
-    if (!genericStream.isStreaming) {
+  fun startStream(endpoint: String): Boolean {
+    if (genericStream.isStreaming) return true
+    return try {
       genericStream.startStream(endpoint)
       showCaptureNotification()
+      true
+    } catch (error: Exception) {
+      Log.e(TAG, "SCREEN diagnostic: stream start failed", error)
+      toast("No se pudo iniciar la transmisión: ${error.message ?: "error desconocido"}")
+      false
     }
   }
 
