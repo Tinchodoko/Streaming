@@ -68,13 +68,15 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       if (granted) {
         if (sourceToApply != null) {
           try {
-            ScreenService.INSTANCE?.toggleAudioSource(sourceToApply)
-            currentAudioSource?.let { selected ->
-              selected.isChecked = true
+            val service = ScreenService.INSTANCE
+            if (service == null) {
+              toast("Screen service is not ready. Please try again.")
+            } else {
+              service.selectAudioSource(sourceToApply)
+              invalidateOptionsMenu()
             }
-            invalidateOptionsMenu()
-          } catch (e: IllegalArgumentException) {
-            toast("Change source error: ${e.message}")
+          } catch (e: Exception) {
+            toast("No se pudo seleccionar el audio: ${e.message}")
           }
         }
         if (action != Action.NONE) launchScreenCapture()
@@ -87,24 +89,36 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   private val activityResultContract =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
       val data = result.data
-      if (data != null && result.resultCode == RESULT_OK) {
-        val screenService = ScreenService.INSTANCE
-        if (screenService != null) {
-          if (screenService.prepareStream(result.resultCode, data)) {
-            when (action) {
-              Action.STREAM -> startStream()
-              Action.RECORD -> toggleRecord()
-              else -> {}
+      try {
+        if (data != null && result.resultCode == RESULT_OK) {
+          val screenService = ScreenService.INSTANCE
+          if (screenService != null) {
+            if (screenService.prepareStream(result.resultCode, data)) {
+              when (action) {
+                Action.STREAM -> startStream()
+                Action.RECORD -> toggleRecord()
+                else -> {}
+              }
+            } else {
+              button.setImageResource(R.drawable.stream_icon)
+              bRecord.setImageResource(R.drawable.record_icon)
+              toast("No se pudo preparar la captura. Revisa el diagnóstico de SCREEN.")
             }
           } else {
-            toast("Prepare stream failed")
+            toast("Screen service is not ready. Please try again.")
           }
+        } else {
+          toast("Screen capture permission was not granted")
+          button.setImageResource(R.drawable.stream_icon)
+          bRecord.setImageResource(R.drawable.record_icon)
         }
-      } else {
-        toast("Screen capture permission was not granted")
+      } catch (error: Exception) {
         button.setImageResource(R.drawable.stream_icon)
+        bRecord.setImageResource(R.drawable.record_icon)
+        toast("SCREEN no pudo iniciarse: ${error.message ?: "error desconocido"}")
+      } finally {
+        action = Action.NONE
       }
-      action = Action.NONE
     }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -212,10 +226,10 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
     menuInflater.inflate(R.menu.screen_menu, menu)
-    val defaultAudioSource = when (ScreenService.INSTANCE?.getCurrentAudioSource()) {
-      is MicrophoneSource -> menu.findItem(R.id.audio_source_microphone)
-      is InternalAudioSource -> menu.findItem(R.id.audio_source_internal)
-      is MixAudioSource -> menu.findItem(R.id.audio_source_mix)
+    val defaultAudioSource = when (ScreenService.INSTANCE?.getSelectedAudioSource()) {
+      R.id.audio_source_microphone -> menu.findItem(R.id.audio_source_microphone)
+      R.id.audio_source_internal -> menu.findItem(R.id.audio_source_internal)
+      R.id.audio_source_mix -> menu.findItem(R.id.audio_source_mix)
       else -> menu.findItem(R.id.audio_source_microphone)
     }
     currentAudioSource = defaultAudioSource.updateMenuColor(this, currentAudioSource)
@@ -240,7 +254,7 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
             }
           }
           try {
-            service.toggleAudioSource(item.itemId)
+            service.selectAudioSource(item.itemId)
             currentAudioSource = item.updateMenuColor(this, currentAudioSource)
           } catch (e: IllegalArgumentException) {
             toast("Change source error: ${e.message}")

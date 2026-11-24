@@ -21,6 +21,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
@@ -159,10 +160,6 @@ class ScreenService: Service(), ConnectChecker {
         selectedAudioSource == R.id.audio_source_mix
   }
 
-  private fun keepAliveTrick() {
-    showCaptureNotification()
-  }
-
   private fun showCaptureNotification() {
     val stopIntent = Intent(this, ScreenService::class.java).setAction(ACTION_STOP_CAPTURE)
     val stopPendingIntent = PendingIntent.getService(
@@ -183,7 +180,15 @@ class ScreenService: Service(), ConnectChecker {
       .setOngoing(true)
       .addAction(0, "DETENER", stopPendingIntent)
       .build()
-    startForeground(NOTIFY_ID, notification)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      var foregroundTypes = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+      if (requiresMicrophonePermission()) {
+        foregroundTypes = foregroundTypes or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+      }
+      startForeground(NOTIFY_ID, notification, foregroundTypes)
+    } else {
+      startForeground(NOTIFY_ID, notification)
+    }
   }
 
   private fun stopCaptureFromNotification() {
@@ -228,7 +233,7 @@ class ScreenService: Service(), ConnectChecker {
   fun stopStream() {
     if (genericStream.isStreaming) {
       genericStream.stopStream()
-      if (genericStream.isRecording) showCaptureNotification()
+      if (genericStream.isRecording || mediaProjection != null) showCaptureNotification()
       else {
         notificationManager?.cancel(NOTIFY_ID)
         stopForeground(true)
@@ -256,53 +261,83 @@ class ScreenService: Service(), ConnectChecker {
       toast("Los codificadores de SCREEN no están listos. Revisa el diagnóstico en el registro.")
       return false
     }
-    keepAliveTrick()
     stopStream()
     mediaProjection?.stop()
-    val projection = mediaProjectionManager.getMediaProjection(resultCode, data)
-      ?: throw IllegalStateException("No se pudo obtener el permiso de captura de pantalla")
-    this.mediaProjection = projection
+    mediaProjection = null
     return try {
+      val projection = mediaProjectionManager.getMediaProjection(resultCode, data)
+        ?: throw IllegalStateException("No se pudo obtener el permiso de captura de pantalla")
+      mediaProjection = projection
+      // The projection token exists before the service declares mediaProjection FGS type.
+      showCaptureNotification()
       genericStream.changeVideoSource(ScreenSource(applicationContext, projection))
-      // The selected source is attached only now, after Android permission checks.
-      toggleAudioSource(selectedAudioSource)
+      applySelectedAudioSource()
       true
     } catch (error: Exception) {
-      Log.e(TAG, "SCREEN diagnostic: failed to attach screen/audio source", error)
-      toast("No se pudo inicializar la fuente de captura/audio: ${error.message ?: "error desconocido"}")
+      Log.e(TAG, "SCREEN diagnostic: failed to prepare MediaProjection or attach sources", error)
+      mediaProjection?.stop()
+      mediaProjection = null
+      stopForeground(true)
+      toast("No se pudo inicializar SCREEN: ${error.message ?: "error desconocido"}")
       false
     }
   }
 
   fun getCurrentAudioSource(): AudioSource = genericStream.audioSource
 
-  fun toggleAudioSource(itemId: Int) {
-    when (itemId) {
+  fun getSelectedAudioSource(): Int = selectedAudioSource
+
+  fun selectAudioSource(itemId: Int) {
+    if (itemId != R.id.audio_source_microphone &&
+      itemId != R.id.audio_source_internal &&
+      itemId != R.id.audio_source_mix
+    ) return
+    val previous = selectedAudioSource
+    selectedAudioSource = itemId
+    if (mediaProjection == null) return
+    try {
+      // Upgrade/downgrade foreground-service type before touching AudioRecord.
+      showCaptureNotification()
+      applySelectedAudioSource()
+    } catch (error: Exception) {
+      selectedAudioSource = previous
+      try { showCaptureNotification() } catch (_: Exception) {}
+      throw error
+    }
+  }
+
+  private fun applySelectedAudioSource() {
+    when (selectedAudioSource) {
       R.id.audio_source_microphone -> {
-        selectedAudioSource = R.id.audio_source_microphone
-        if (genericStream.audioSource is MicrophoneSource) return
-        genericStream.changeAudioSource(MicrophoneSource())
+        if (genericStream.audioSource !is MicrophoneSource) {
+          genericStream.changeAudioSource(MicrophoneSource())
+        }
       }
       R.id.audio_source_internal -> {
-        selectedAudioSource = R.id.audio_source_internal
-        if (genericStream.audioSource is InternalAudioSource) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mediaProjection?.let { genericStream.changeAudioSource(InternalAudioSource(it)) }
-        } else {
-          throw IllegalArgumentException("You need min API 29+")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+          throw IllegalArgumentException("El audio interno requiere Android 10 o superior")
+        }
+        val projection = mediaProjection
+          ?: throw IllegalStateException("Primero debes autorizar la captura de pantalla")
+        if (genericStream.audioSource !is InternalAudioSource) {
+          genericStream.changeAudioSource(InternalAudioSource(projection))
         }
       }
       R.id.audio_source_mix -> {
-        selectedAudioSource = R.id.audio_source_mix
-        if (genericStream.audioSource is MixAudioSource) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it)) }
-        } else {
-          throw IllegalArgumentException("You need min API 29+")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+          throw IllegalArgumentException("El audio mixto requiere Android 10 o superior")
+        }
+        val projection = mediaProjection
+          ?: throw IllegalStateException("Primero debes autorizar la captura de pantalla")
+        if (genericStream.audioSource !is MixAudioSource) {
+          genericStream.changeAudioSource(MixAudioSource(projection))
         }
       }
     }
   }
+
+  @Deprecated("Use selectAudioSource so microphone capture is deferred until projection consent")
+  fun toggleAudioSource(itemId: Int) = selectAudioSource(itemId)
 
   fun toggleRecord(state: (RecordController.Status) -> Unit) {
     if (!genericStream.isRecording) {
@@ -321,7 +356,7 @@ class ScreenService: Service(), ConnectChecker {
       genericStream.stopRecord()
       state(RecordController.Status.STOPPED)
       PathUtils.updateGallery(this, recordPath)
-      if (genericStream.isStreaming) showCaptureNotification()
+      if (genericStream.isStreaming || mediaProjection != null) showCaptureNotification()
       else {
         notificationManager?.cancel(NOTIFY_ID)
         stopForeground(true)

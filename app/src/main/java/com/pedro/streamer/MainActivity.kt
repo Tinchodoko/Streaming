@@ -28,6 +28,8 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.widget.Button
 import android.widget.GridView
 import android.widget.TextView
@@ -63,6 +65,31 @@ class MainActivity : AppCompatActivity() {
   private val preferences by lazy { getSharedPreferences("app_updates", Context.MODE_PRIVATE) }
   private val downloadManager by lazy { getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager }
   private var receiverRegistered = false
+  private val downloadRefreshHandler = Handler(Looper.getMainLooper())
+  private var downloadRefreshAttempts = 0
+  private val downloadStatusPoll = object : Runnable {
+    override fun run() {
+      val id = preferences.getLong(KEY_DOWNLOAD_ID, -1L)
+      if (id == -1L) return
+      val status = getDownloadStatus(id)
+      when (status) {
+        DownloadManager.STATUS_SUCCESSFUL, DownloadManager.STATUS_FAILED -> {
+          downloadRefreshAttempts = 0
+          refreshDownloadState()
+        }
+        else -> {
+          if (downloadRefreshAttempts < 20) {
+            downloadRefreshAttempts += 1
+            refreshDownloadState()
+            downloadRefreshHandler.postDelayed(this, 500L)
+          } else {
+            downloadRefreshAttempts = 0
+            refreshDownloadState()
+          }
+        }
+      }
+    }
+  }
 
   private val cameraPermissionsLauncher =
     registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
@@ -83,7 +110,9 @@ class MainActivity : AppCompatActivity() {
       if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
       val completedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
       if (completedId == preferences.getLong(KEY_DOWNLOAD_ID, -1L)) {
-        refreshDownloadState()
+        downloadRefreshAttempts = 0
+        downloadRefreshHandler.removeCallbacks(downloadStatusPoll)
+        downloadRefreshHandler.postDelayed(downloadStatusPoll, 300L)
       }
     }
   }
@@ -117,6 +146,7 @@ class MainActivity : AppCompatActivity() {
     setListAdapter(activities)
     registerDownloadReceiver()
     refreshDownloadState()
+    scheduleDownloadStatusPolling()
     loadChangelog()
   }
 
@@ -124,6 +154,7 @@ class MainActivity : AppCompatActivity() {
     super.onResume()
     cleanupInstalledUpdate()
     refreshDownloadState()
+    scheduleDownloadStatusPolling()
   }
 
   override fun onDestroy() {
@@ -131,6 +162,7 @@ class MainActivity : AppCompatActivity() {
       unregisterReceiver(downloadReceiver)
       receiverRegistered = false
     }
+    downloadRefreshHandler.removeCallbacks(downloadStatusPoll)
     ioExecutor.shutdown()
     super.onDestroy()
   }
@@ -150,7 +182,7 @@ class MainActivity : AppCompatActivity() {
   private fun registerDownloadReceiver() {
     val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
     if (Build.VERSION.SDK_INT >= 33) {
-      registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+      registerReceiver(downloadReceiver, filter, Context.RECEIVER_EXPORTED)
     } else {
       registerReceiver(downloadReceiver, filter)
     }
@@ -253,6 +285,9 @@ class MainActivity : AppCompatActivity() {
       updateButton.text = "DESCARGANDO..."
       updateButton.isEnabled = false
       updateStatusText.text = "Descargando $version. Recibirás una notificación al finalizar."
+      downloadRefreshAttempts = 0
+      downloadRefreshHandler.removeCallbacks(downloadStatusPoll)
+      downloadRefreshHandler.postDelayed(downloadStatusPoll, 750L)
       toast("Descarga iniciada")
     } catch (error: Exception) {
       updateButton.isEnabled = true
@@ -281,6 +316,18 @@ class MainActivity : AppCompatActivity() {
         updateButton.isEnabled = false
         updateButton.text = "DESCARGANDO..."
       }
+      -1 -> {
+        updateButton.isEnabled = false
+        updateButton.text = "VERIFICANDO..."
+        updateStatusText.text = "Verificando el estado de la descarga..."
+      }
+      DownloadManager.STATUS_FAILED -> {
+        downloadManager.remove(id)
+        clearDownloadState()
+        updateButton.isEnabled = true
+        updateButton.text = "BUSCAR ACTUALIZACIÓN"
+        updateStatusText.text = "La descarga no se completó. Puedes intentarlo nuevamente."
+      }
       else -> {
         downloadManager.remove(id)
         clearDownloadState()
@@ -289,6 +336,19 @@ class MainActivity : AppCompatActivity() {
         updateStatusText.text = "No hay una descarga pendiente."
       }
     }
+  }
+
+  private fun scheduleDownloadStatusPolling() {
+    val id = preferences.getLong(KEY_DOWNLOAD_ID, -1L)
+    if (id == -1L) return
+    val status = getDownloadStatus(id)
+    if (status == DownloadManager.STATUS_SUCCESSFUL || status == DownloadManager.STATUS_FAILED) {
+      refreshDownloadState()
+      return
+    }
+    downloadRefreshAttempts = 0
+    downloadRefreshHandler.removeCallbacks(downloadStatusPoll)
+    downloadRefreshHandler.postDelayed(downloadStatusPoll, 500L)
   }
 
   private fun getDownloadStatus(id: Long): Int {

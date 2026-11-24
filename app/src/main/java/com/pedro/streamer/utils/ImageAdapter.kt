@@ -19,6 +19,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.graphics.Typeface
 import android.widget.AbsListView
 import android.widget.BaseAdapter
 import android.widget.TextView
@@ -48,11 +49,12 @@ class ImageAdapter(private val links: List<ActivityLink>) : BaseAdapter() {
     if (myConvertView == null) {
       button = TextView(parent.context)
       button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize)
-      button.setTextColor(ResourcesCompat.getColor(resources, R.color.white, null))
-      button.setBackgroundColor(ResourcesCompat.getColor(resources, R.color.appColor, null))
+      button.setTextColor(ResourcesCompat.getColor(resources, R.color.black, null))
+      button.setBackgroundResource(R.drawable.button_outline_black)
+      button.setTypeface(Typeface.DEFAULT, Typeface.BOLD)
       button.layoutParams = AbsListView.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT,
-        ViewGroup.LayoutParams.WRAP_CONTENT
+        resources.getDimensionPixelSize(R.dimen.home_button_height)
       )
       button.setPadding(paddingH, paddingV, paddingH, paddingV)
       button.gravity = Gravity.CENTER
@@ -61,6 +63,13 @@ class ImageAdapter(private val links: List<ActivityLink>) : BaseAdapter() {
       button = myConvertView as TextView
     }
     button.text = links[position].label
+    button.setTextColor(ResourcesCompat.getColor(resources, R.color.black, null))
+    button.setBackgroundResource(R.drawable.button_outline_black)
+    button.setTypeface(Typeface.DEFAULT, Typeface.BOLD)
+    button.layoutParams = AbsListView.LayoutParams(
+      ViewGroup.LayoutParams.MATCH_PARENT,
+      resources.getDimensionPixelSize(R.dimen.home_button_height)
+    )
     return myConvertView
   }
 }

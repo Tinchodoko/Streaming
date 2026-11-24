@@ -3,4 +3,5 @@
   <dimen name="grid_1">4dp</dimen>
   <dimen name="grid_2">8dp</dimen>
   <dimen name="grid_5">20dp</dimen>
+  <dimen name="home_button_height">64dp</dimen>
 </resources>
