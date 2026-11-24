@@ -3,44 +3,222 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
-    android:background="@color/white"
-    >
+    android:background="@color/white">
 
-  <TextView
-      android:id="@+id/tv_version"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:textColor="@color/appColor"
-      android:textSize="12sp"
-      android:layout_marginTop="@dimen/grid_2"
-      android:layout_marginLeft="@dimen/grid_2"
-      android:layout_marginRight="@dimen/grid_2"
-      />
-  <TextView
-      android:id="@+id/tv_select"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/grid_2"
-      android:layout_marginLeft="@dimen/grid_2"
-      android:layout_marginRight="@dimen/grid_2"
-      android:text="@string/tv_select"
-      android:textColor="@color/appColor"
-      android:textSize="22sp"
-      />
-
-  <GridView
-      android:id="@+id/list"
+  <FrameLayout
+      android:id="@+id/main_content"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:layout_marginTop="@dimen/grid_1"
-      android:columnWidth="40dp"
-      android:gravity="center"
-      android:horizontalSpacing="@dimen/grid_2"
-      android:numColumns="2"
-      android:padding="@dimen/grid_2"
-      android:stretchMode="columnWidth"
-      android:verticalSpacing="@dimen/grid_2"
-      />
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+    <LinearLayout
+        android:id="@+id/home_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+      <TextView
+          android:id="@+id/tv_version"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="@color/appColor"
+          android:textSize="12sp"
+          android:layout_marginTop="@dimen/grid_2"
+          android:layout_marginLeft="@dimen/grid_2"
+          android:layout_marginRight="@dimen/grid_2" />
+
+      <TextView
+          android:id="@+id/tv_select"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/grid_2"
+          android:layout_marginLeft="@dimen/grid_2"
+          android:layout_marginRight="@dimen/grid_2"
+          android:text="@string/tv_select"
+          android:textColor="@color/appColor"
+          android:textSize="22sp" />
+
+      <GridView
+          android:id="@+id/list"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="1"
+          android:layout_marginTop="@dimen/grid_1"
+          android:columnWidth="40dp"
+          android:gravity="center"
+          android:horizontalSpacing="@dimen/grid_2"
+          android:numColumns="2"
+          android:padding="@dimen/grid_2"
+          android:stretchMode="columnWidth"
+          android:verticalSpacing="@dimen/grid_2" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/info_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:visibility="gone">
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TINCHODOKO STREAMING"
+            android:textColor="@color/appColor"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:paddingBottom="14dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/info_card_background">
+
+          <TextView
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="ACTUALIZACIÓN DE LA APLICACIÓN"
+              android:textColor="@color/black"
+              android:textStyle="bold"
+              android:textSize="16sp" />
+
+          <TextView
+              android:id="@+id/tv_current_version"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="12dp"
+              android:text="Versión actual: ..."
+              android:textColor="@color/black"
+              android:textSize="14sp" />
+
+          <TextView
+              android:id="@+id/tv_update_status"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="8dp"
+              android:text="Busca nuevas versiones disponibles."
+              android:textColor="@color/black"
+              android:textSize="14sp" />
+
+          <Button
+              android:id="@+id/b_update"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="14dp"
+              android:text="BUSCAR ACTUALIZACIÓN" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/info_card_background">
+
+          <TextView
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="LINKS"
+              android:textColor="@color/black"
+              android:textStyle="bold"
+              android:textSize="16sp" />
+
+          <LinearLayout
+              android:id="@+id/link_github"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="12dp"
+              android:gravity="center_vertical"
+              android:orientation="horizontal"
+              android:clickable="true"
+              android:focusable="true"
+              android:padding="4dp">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/github_mark"
+                android:contentDescription="GitHub" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="GITHUB"
+                android:textColor="#0969DA"
+                android:textStyle="bold"
+                android:textSize="15sp" />
+          </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/info_card_background">
+
+          <TextView
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="CHANGELOGS"
+              android:textColor="@color/black"
+              android:textStyle="bold"
+              android:textSize="16sp" />
+
+          <TextView
+              android:id="@+id/tv_changelog"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="12dp"
+              android:text="Cargando historial de cambios..."
+              android:textColor="@color/black"
+              android:textSize="14sp"
+              android:lineSpacingExtra="5dp"
+              android:textIsSelectable="true" />
+        </LinearLayout>
+      </LinearLayout>
+    </ScrollView>
+  </FrameLayout>
+
+  <LinearLayout
+      android:id="@+id/bottom_tabs"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:padding="8dp"
+      android:background="#F4F4F4">
+
+    <Button
+        android:id="@+id/tab_home"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:text="HOME"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/tab_info"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:layout_marginStart="4dp"
+        android:text="INFO"
+        android:textStyle="bold"
+        android:backgroundTint="#777777" />
+  </LinearLayout>
 </LinearLayout>
