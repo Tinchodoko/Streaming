@@ -265,11 +265,13 @@ class ScreenService: Service(), ConnectChecker {
     mediaProjection?.stop()
     mediaProjection = null
     return try {
+      // User consent has already been returned by createScreenCaptureIntent().
+      // Android 14+ requires the typed foreground service to start BEFORE
+      // getMediaProjection() is called.
+      showCaptureNotification()
       val projection = mediaProjectionManager.getMediaProjection(resultCode, data)
         ?: throw IllegalStateException("No se pudo obtener el permiso de captura de pantalla")
       mediaProjection = projection
-      // The projection token exists before the service declares mediaProjection FGS type.
-      showCaptureNotification()
       genericStream.changeVideoSource(ScreenSource(applicationContext, projection))
       applySelectedAudioSource()
       true
