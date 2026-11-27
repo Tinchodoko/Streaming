@@ -1,3 +1,4 @@
+#V34 — feat(screen): add YouTube server and stream key fields; enable RTMPS
 #V33 — fix(ci): complete branding migration and avoid concurrent push conflicts
 #V30 — chore(build): add independent build registry workflow
 #V29 — fix(screen): start typed projection service before retrieving token
