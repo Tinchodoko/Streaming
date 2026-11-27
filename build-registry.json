@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-27T04:32:04Z",
+  "generated_at": "2026-11-27T04:50:59Z",
   "workflow": "Streaming Android Release",
   "repository": "Tinchodoko/Streaming",
   "builds": [
@@ -521,6 +521,43 @@
       "created_at": "2026-11-27T04:28:48Z",
       "updated_at": "2026-11-27T04:31:38Z",
       "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45940169233",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 31,
+      "run_id": 45942088749,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "chore(branding): add Pedro to Tinchodoko migration",
+      "event": "push",
+      "branch": "main",
+      "sha": "54b38e2a5103f6d0ffc7f54903f30c72cdc19c3f",
+      "created_at": "2026-11-27T04:48:38Z",
+      "updated_at": "2026-11-27T04:50:40Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45942088749",
+      "failed_step": "Commit successful build changelog and update manifest",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Commit successful build changelog and update manifest",
+          "started_at": "2026-11-27T04:50:28Z",
+          "completed_at": "2026-11-27T04:50:29Z"
+        }
+      ]
+    },
+    {
+      "run_number": 32,
+      "run_id": 45942207446,
+      "status": "in_progress",
+      "conclusion": null,
+      "display_title": "Change branch name from 'master' to 'main' in CI",
+      "event": "push",
+      "branch": "main",
+      "sha": "fb7c2ebe8f18a007022fc51691b6a8a2eaaeea8d",
+      "created_at": "2026-11-27T04:49:56Z",
+      "updated_at": "2026-11-27T04:50:42Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45942207446",
       "failed_step": null,
       "failed_steps": []
     }
