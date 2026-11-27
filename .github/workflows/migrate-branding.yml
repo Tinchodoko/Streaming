@@ -1,0 +1,141 @@
+name: Migrate Pedro Branding
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: branding-migration
+  cancel-in-progress: true
+
+jobs:
+  migrate:
+    if: ${{ !contains(github.event.head_commit.message, '[skip branding migration]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Replace Pedro branding and package namespace
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          files = subprocess.run(
+              ["git", "grep", "-Il", "-i", "pedro"],
+              capture_output=True,
+              text=True,
+              check=False,
+          ).stdout.splitlines()
+
+          excluded = {"LICENSE", "LICENSE.txt"}
+          changed = 0
+
+          for name in files:
+              path = Path(name)
+              if path.name in excluded or path.name.startswith("LICENSE"):
+                  continue
+
+              try:
+                  text = path.read_text(encoding="utf-8")
+              except (UnicodeDecodeError, OSError):
+                  continue
+
+              lines = text.splitlines(keepends=True)
+              out = []
+              dirty = False
+
+              for line in lines:
+                  if "copyright" in line.lower() and "pedro" in line.lower():
+                      out.append(line)
+                      continue
+
+                  new = line
+                  new = new.replace("com.pedro", "com.tinchodoko")
+                  new = new.replace("com/pedro", "com/tinchodoko")
+                  new = new.replace("pedroSG94", "Tinchodoko")
+                  new = new.replace("Pedro", "Tinchodoko")
+                  new = new.replace("PEDRO", "TINCHODOKO")
+                  new = new.replace("pedro", "tinchodoko")
+
+                  if new != line:
+                      dirty = True
+                  out.append(new)
+
+              if dirty:
+                  path.write_text("".join(out), encoding="utf-8")
+                  changed += 1
+
+          print(f"Changed text files: {changed}")
+          PY
+
+      - name: Rename Java/Kotlin package directories
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          find . -type d -path '*/com/pedro' -print0 |
+            while IFS= read -r -d '' dir; do
+              target="$(dirname "$dir")/tinchodoko"
+              if [ ! -e "$target" ]; then
+                git mv "$dir" "$target"
+              fi
+            done
+
+      - name: Rename remaining paths containing Pedro
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          while IFS= read -r -d '' path; do
+            [ -e "$path" ] || continue
+            case "$path" in
+              ./LICENSE|./LICENSE.txt) continue ;;
+            esac
+
+            new="$path"
+            new="${new//pedro/tinchodoko}"
+            new="${new//Pedro/Tinchodoko}"
+            new="${new//PEDRO/TINCHODOKO}"
+
+            if [ "$new" != "$path" ] && [ ! -e "$new" ]; then
+              mkdir -p "$(dirname "$new")"
+              git mv "$path" "$new"
+            fi
+          done < <(find . -not -path './.git/*' -print0)
+
+      - name: Verify remaining non-legal Pedro references
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git grep -ni "pedro" -- ':!LICENSE' ':!LICENSE.txt'; then
+            echo "::error::Pedro references remain outside preserved license attribution."
+            exit 1
+          fi
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --cached --quiet && git diff --quiet; then
+            echo "No branding changes required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(branding): migrate Pedro references to Tinchodoko [skip branding migration]"
+          git push origin main
