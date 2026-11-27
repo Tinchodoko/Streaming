@@ -56,7 +56,8 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
   private lateinit var button: ImageView
   private lateinit var bRecord: ImageView
-  private lateinit var etUrl: EditText
+  private lateinit var etServerUrl: EditText
+  private lateinit var etStreamKey: EditText
   private var currentAudioSource: MenuItem? = null
   private var action = Action.NONE
   private var pendingAudioSource: Int? = null
@@ -127,7 +128,11 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     setContentView(R.layout.activity_display)
     fitAppPadding()
     button = findViewById(R.id.b_start_stop)
-    etUrl = findViewById(R.id.et_rtp_url)
+    etServerUrl = findViewById(R.id.et_server_url)
+    etStreamKey = findViewById(R.id.et_stream_key)
+    val preferences = getSharedPreferences("screen_stream_settings", MODE_PRIVATE)
+    etServerUrl.setText(preferences.getString("server_url", "rtmp://a.rtmp.youtube.com/live2"))
+    etStreamKey.setText(preferences.getString("stream_key", ""))
     bRecord = findViewById(R.id.b_record)
     val screenService = ScreenService.INSTANCE
     if (screenService == null) {
@@ -201,14 +206,40 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   }
 
   private fun startStream() {
-    val endpoint = etUrl.text.toString().trim()
-    val supported = endpoint.startsWith("rtmp://", ignoreCase = true) ||
-        endpoint.startsWith("rtsp://", ignoreCase = true) ||
-        endpoint.startsWith("srt://", ignoreCase = true)
-    if (!supported) {
-      toast("Protocolo no compatible. Usa rtmp://, rtsp:// o srt://")
+    val server = etServerUrl.text.toString().trim()
+    val key = etStreamKey.text.toString().trim()
+    if (server.isEmpty()) {
+      toast("Introduce la URL del servidor.")
       return
     }
+    if (key.isEmpty()) {
+      toast("Introduce la clave de transmisión.")
+      return
+    }
+
+    // Append the stream key before any optional query parameters.
+    val queryIndex = server.indexOf('?')
+    val base = if (queryIndex >= 0) server.substring(0, queryIndex) else server
+    val query = if (queryIndex >= 0) server.substring(queryIndex) else ""
+    val endpoint = base.trimEnd('/') + "/" + key.trim('/') + query
+
+    val supported = endpoint.startsWith("rtmp://", ignoreCase = true) ||
+        endpoint.startsWith("rtmps://", ignoreCase = true) ||
+        endpoint.startsWith("rtmpt://", ignoreCase = true) ||
+        endpoint.startsWith("rtmpts://", ignoreCase = true) ||
+        endpoint.startsWith("rtsp://", ignoreCase = true) ||
+        endpoint.startsWith("srt://", ignoreCase = true) ||
+        endpoint.startsWith("udp://", ignoreCase = true)
+    if (!supported) {
+      toast("Protocolo no compatible. Usa RTMP, RTMPS, RTSP o SRT.")
+      return
+    }
+
+    getSharedPreferences("screen_stream_settings", MODE_PRIVATE).edit()
+      .putString("server_url", server)
+      .putString("stream_key", key)
+      .apply()
+
     val started = ScreenService.INSTANCE?.startStream(endpoint) == true
     button.setImageResource(if (started) R.drawable.stream_stop_icon else R.drawable.stream_icon)
   }

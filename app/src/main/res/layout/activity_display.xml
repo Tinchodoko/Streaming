@@ -12,17 +12,35 @@
       />
 
   <EditText
-      android:hint="@string/hint_protocol"
-      android:textColor="@color/appColor"
-      android:textColorHint="@color/appColor"
-      android:inputType="textUri"
+      android:id="@+id/et_server_url"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_marginStart="20dp"
+      android:layout_marginTop="20dp"
+      android:layout_marginEnd="20dp"
       android:gravity="center"
-      android:layout_margin="20dp"
-      android:id="@+id/et_rtp_url"
-      app:layout_constraintTop_toTopOf="parent"
-      />
+      android:hint="URL del servidor (RTMP/RTMPS)"
+      android:inputType="textUri"
+      android:singleLine="true"
+      android:text="rtmp://a.rtmp.youtube.com/live2"
+      android:textColor="@color/appColor"
+      android:textColorHint="@color/appColor"
+      app:layout_constraintTop_toTopOf="parent" />
+
+  <EditText
+      android:id="@+id/et_stream_key"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="20dp"
+      android:layout_marginTop="8dp"
+      android:layout_marginEnd="20dp"
+      android:gravity="center"
+      android:hint="Clave de transmisión"
+      android:inputType="textPassword"
+      android:singleLine="true"
+      android:textColor="@color/appColor"
+      android:textColorHint="@color/appColor"
+      app:layout_constraintTop_toBottomOf="@id/et_server_url" />
 
   <androidx.constraintlayout.widget.ConstraintLayout
       android:layout_width="match_parent"
