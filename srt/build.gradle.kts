@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pedro.srt"
+    namespace = "com.tinchodoko.srt"
     //noinspection GradleDependency
     compileSdk = 35
 

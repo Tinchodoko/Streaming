@@ -3,9 +3,9 @@ plugins {
 }
 
 android {
-  // Keep the original source namespace so existing Kotlin files resolve com.pedro.streamer.R.
+  // Keep the original source namespace so existing Kotlin files resolve com.tinchodoko.streamer.R.
   // The installed application identity remains Tinchodoko's independent package.
-  namespace = "com.pedro.streamer"
+  namespace = "com.tinchodoko.streamer"
   compileSdk = 37
 
   defaultConfig {

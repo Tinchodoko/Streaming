@@ -1,16 +1,16 @@
 # RootEncoder for Android
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-rtmp%20rtsp%20stream%20client%20java-green.svg?style=true)](https://android-arsenal.com/details/1/5333)
-[![Release](https://jitpack.io/v/pedroSG94/RootEncoder.svg)](https://jitpack.io/#pedroSG94/RootEncoder)
-[![Documentation](https://img.shields.io/badge/library-documentation-orange)](https://pedroSG94.github.io/RootEncoder)
+[![Release](https://jitpack.io/v/Tinchodoko/RootEncoder.svg)](https://jitpack.io/#Tinchodoko/RootEncoder)
+[![Documentation](https://img.shields.io/badge/library-documentation-orange)](https://Tinchodoko.github.io/RootEncoder)
 
 <p align="center">
 <strong>Sponsored with 💖 &nbsp by</strong><br />
-<a href="https://getstream.io/?utm_source=github.com/pedroSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_campaign=oss_sponsorship" target="_blank">
+<a href="https://getstream.io/?utm_source=github.com/tinchodokoSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_campaign=oss_sponsorship" target="_blank">
 <img src="assets/images/stream-logo.png" alt="Stream Chat" style="margin: 8px; width: 350px" />
 </a>
 <br />
-Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/android-chat/?utm_source=https://github.com/pedroSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_content=developer&utm_term=java" target="_blank">Try the Android Chat tutorial</a> 💬
+Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/android-chat/?utm_source=https://github.com/tinchodokoSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_content=developer&utm_term=java" target="_blank">Try the Android Chat tutorial</a> 💬
 </p>
 
 </br>
@@ -19,7 +19,7 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/
 
 ## Recall.ai - Mobile Recording SDK
 
-If you’re looking for a hosted mobile recording API, consider checking out [Recall.ai](https://www.recall.ai/product/mobile-recording-sdk?utm_source=github&utm_medium=sponsorship&utm_campaign=pedrosg94-rootencoder), an API that records phone calls and in-person meetings.
+If you’re looking for a hosted mobile recording API, consider checking out [Recall.ai](https://www.recall.ai/product/mobile-recording-sdk?utm_source=github&utm_medium=sponsorship&utm_campaign=tinchodokosg94-rootencoder), an API that records phone calls and in-person meetings.
 
 ---
 
@@ -30,11 +30,11 @@ Note: The library was renamed from rtmp-rtsp-stream-client-java to RootEncoder a
 
 ## iOS version:
 
-https://github.com/pedroSG94/RootEncoder-iOS
+https://github.com/tinchodokoSG94/RootEncoder-iOS
 
 ## Wiki
 
-https://github.com/pedroSG94/RootEncoder/wiki
+https://github.com/tinchodokoSG94/RootEncoder/wiki
 
 ## Permissions:
 
@@ -58,9 +58,9 @@ allprojects {
   }
 }
 dependencies {
-  implementation "com.github.pedroSG94.RootEncoder:library:2.8.2"
+  implementation "com.github.Tinchodoko.RootEncoder:library:2.8.2"
   //Optional, allow use CameraXSource and CameraUvcSource 
-  implementation "com.github.pedroSG94.RootEncoder:extra-sources:2.8.2"
+  implementation "com.github.Tinchodoko.RootEncoder:extra-sources:2.8.2"
 }
 
 ```
@@ -77,7 +77,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:rtplibrary:2.2.6'
+  implementation 'com.github.Tinchodoko.RootEncoder:rtplibrary:2.2.6'
 }
 ```
 
@@ -102,8 +102,8 @@ dependencies {
 - [x] Force video and audio Codec to use hardware/software encoding (Not recommended).
 - [X] Record MP4 file while streaming (API 18+).
 - [X] Set Image, Gif or Text to stream on real time.
-- [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/RootEncoder/wiki/Real-time-filters)
-- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/RootEncoder/wiki/Stream-from-file)
+- [X] OpenGL real time filters. [More info](https://github.com/tinchodokoSG94/RootEncoder/wiki/Real-time-filters)
+- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/tinchodokoSG94/RootEncoder/wiki/Stream-from-file)
 - [x] Stream device screen (API 21+).
 
 ### RTMP:
@@ -148,7 +148,7 @@ https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
 ## Other related projects:
 
-https://github.com/pedroSG94/RTSP-Server
+https://github.com/tinchodokoSG94/RTSP-Server
 
 ### 3rd party projects:
 
@@ -162,12 +162,12 @@ https://github.com/FunnyDevs/rtmp-rtsp-stream-client-java-recordcontrollers
 ### NOTE:
 In library version 2.0.9, the filters was refactored. Check the wiki link to migrate your implementation.
 
-https://github.com/pedroSG94/RootEncoder/wiki/Real-time-filters
+https://github.com/tinchodokoSG94/RootEncoder/wiki/Real-time-filters
 
 ## Looking for sponsors
 
 This library need sponsors to get new devices or pay platforms to test and debug errors. Any donation or sponsor is welcome!
-If you are interested. You can contact me by email or donate directly on [Github](https://github.com/sponsors/pedroSG94) or [Paypal](https://www.paypal.com/paypalme/pedroSG94)
+If you are interested. You can contact me by email or donate directly on [Github](https://github.com/sponsors/Tinchodoko) or [Paypal](https://www.paypal.com/paypalme/Tinchodoko)
 Thank you!
 
 ## Use examples:
@@ -176,19 +176,19 @@ Thank you!
 
 This is the recommend way to use the library. 
 This example support screen rotation, stream orientation (vertical, horizontal) filters and change video/audio sources on fly:
-https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/rotation
+https://github.com/tinchodokoSG94/RootEncoder/tree/master/app/src/main/java/com/tinchodoko/streamer/rotation
 
 ### Screen example
 
 Example to stream using Screen as video source using a service to stream in background:
-https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/screen
+https://github.com/tinchodokoSG94/RootEncoder/tree/master/app/src/main/java/com/tinchodoko/streamer/screen
 
 ### From file example
 
 Code example to stream using a video file as video/audio source:
-https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/file
+https://github.com/tinchodokoSG94/RootEncoder/tree/master/app/src/main/java/com/tinchodoko/streamer/file
 
 ### Old Api example
 
 Code example for low API devices (Android API 16+):
-https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/oldapi
+https://github.com/tinchodokoSG94/RootEncoder/tree/master/app/src/main/java/com/tinchodoko/streamer/oldapi

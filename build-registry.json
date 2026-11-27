@@ -529,7 +529,7 @@
       "run_id": 45942088749,
       "status": "completed",
       "conclusion": "failure",
-      "display_title": "chore(branding): add Pedro to Tinchodoko migration",
+      "display_title": "chore(branding): add Tinchodoko to Tinchodoko migration",
       "event": "push",
       "branch": "main",
       "sha": "54b38e2a5103f6d0ffc7f54903f30c72cdc19c3f",

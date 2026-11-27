@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.encoder"
+  namespace = "com.tinchodoko.encoder"
   //noinspection GradleDependency
   compileSdk = 35
 

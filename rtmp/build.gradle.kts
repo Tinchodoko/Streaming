@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.rtmp"
+  namespace = "com.tinchodoko.rtmp"
   //noinspection GradleDependency
   compileSdk = 35
 

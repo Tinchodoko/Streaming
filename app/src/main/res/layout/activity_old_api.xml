@@ -13,7 +13,7 @@
       android:gravity="center"
       >
 
-    <com.pedro.library.view.AutoFitTextureView
+    <com.tinchodoko.library.view.AutoFitTextureView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/surfaceView"

@@ -24,7 +24,7 @@
 
   <!--  This is only to allow compile extra-sources modules in app with min version 16. Never do it-->
   <uses-sdk tools:overrideLibrary="
-  com.pedro.extrasources,
+  com.tinchodoko.extrasources,
   com.serenegiant.uvccamera,
   androidx.core.ktx,androidx.core,
   androidx.annotation.experimental,
@@ -43,7 +43,7 @@
       android:theme="@style/AppTheme"
       >
     <activity
-        android:name="com.pedro.streamer.MainActivity"
+        android:name="com.tinchodoko.streamer.MainActivity"
         android:label="@string/app_name"
         android:exported="true">
       <intent-filter>
@@ -55,27 +55,27 @@
     </activity>
 
     <activity
-        android:name="com.pedro.streamer.oldapi.OldApiActivity"
+        android:name="com.tinchodoko.streamer.oldapi.OldApiActivity"
         android:label="@string/old_api"
         />
 
     <activity
-        android:name="com.pedro.streamer.file.FromFileActivity"
+        android:name="com.tinchodoko.streamer.file.FromFileActivity"
         android:label="@string/from_file"
         />
 
     <activity
-        android:name="com.pedro.streamer.screen.ScreenActivity"
+        android:name="com.tinchodoko.streamer.screen.ScreenActivity"
         android:label="@string/display"
         />
 
-    <activity android:name="com.pedro.streamer.rotation.RotationActivity"
+    <activity android:name="com.tinchodoko.streamer.rotation.RotationActivity"
         android:label="@string/rotation_rtmp"
         android:screenOrientation="fullSensor"
         android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
         tools:ignore="DiscouragedApi" />
 
-    <service android:name="com.pedro.streamer.screen.ScreenService"
+    <service android:name="com.tinchodoko.streamer.screen.ScreenService"
         android:foregroundServiceType="mediaProjection|microphone"
         />
   </application>

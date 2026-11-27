@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.udp"
+  namespace = "com.tinchodoko.udp"
   //noinspection GradleDependency
   compileSdk = 35
 

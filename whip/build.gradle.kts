@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.whip"
+  namespace = "com.tinchodoko.whip"
   //noinspection GradleDependency
   compileSdk = 35
 

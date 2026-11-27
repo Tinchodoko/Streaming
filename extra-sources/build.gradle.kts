@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pedro.extrasources"
+    namespace = "com.tinchodoko.extrasources"
     //noinspection GradleDependency
     compileSdk = 36
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.library"
+  namespace = "com.tinchodoko.library"
   //noinspection GradleDependency
   compileSdk = 35
 
