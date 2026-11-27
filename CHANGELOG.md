@@ -1,3 +1,4 @@
+- #V30 — chore(build): add independent build registry workflow
 - #V29 — fix(screen): start typed projection service before retrieving token
 - #V26 — fix(screen): add stop action and validate stream protocol; improve info buttons
 - #V25 — fix(screen): import deferred silent audio source
