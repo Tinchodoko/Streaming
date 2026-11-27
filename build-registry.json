@@ -1,0 +1,528 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-27T04:32:04Z",
+  "workflow": "Streaming Android Release",
+  "repository": "Tinchodoko/Streaming",
+  "builds": [
+    {
+      "run_number": 1,
+      "run_id": 45338999823,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "ci: add Android debug build workflow",
+      "event": "push",
+      "branch": "main",
+      "sha": "498bfd091590844732dfcc3ea8f3f1ee85603089",
+      "created_at": "2026-11-24T06:14:39Z",
+      "updated_at": "2026-11-24T06:18:35Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45338999823",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 2,
+      "run_id": 45339174219,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "ci: build debug APK on master and main",
+      "event": "push",
+      "branch": "master",
+      "sha": "f220ebd34f8d3f2228b1c6677fd7fc97a2652dca",
+      "created_at": "2026-11-24T06:16:01Z",
+      "updated_at": "2026-11-24T06:20:27Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45339174219",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 3,
+      "run_id": 45340337763,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "ci: publish debug APKs to GitHub Releases",
+      "event": "push",
+      "branch": "main",
+      "sha": "0c1d8017b6498c4cceedeee31634bbd18bf1ce69",
+      "created_at": "2026-11-24T06:25:24Z",
+      "updated_at": "2026-11-24T06:29:12Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45340337763",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 4,
+      "run_id": 45340362771,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "ci: quote automated release title",
+      "event": "push",
+      "branch": "main",
+      "sha": "b6ddba36a1fe0e2adfd8346a0fc2dc217dc9e6f1",
+      "created_at": "2026-11-24T06:25:36Z",
+      "updated_at": "2026-11-24T06:29:18Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45340362771",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 5,
+      "run_id": 45342453997,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "build: configure Streaming application identity and permanent signing",
+      "event": "push",
+      "branch": "main",
+      "sha": "e5f1c5b3badd9f1b464f7966c340dbcf56cbef14",
+      "created_at": "2026-11-24T06:42:31Z",
+      "updated_at": "2026-11-24T06:44:31Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45342453997",
+      "failed_step": "Build debug APK",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Build debug APK",
+          "started_at": "2026-11-24T06:42:45Z",
+          "completed_at": "2026-11-24T06:44:21Z"
+        }
+      ]
+    },
+    {
+      "run_number": 6,
+      "run_id": 45342458694,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "app: set Tinchodoko Streaming application name",
+      "event": "push",
+      "branch": "main",
+      "sha": "451541c08830b2db79b5767def17e269b1904f5a",
+      "created_at": "2026-11-24T06:42:33Z",
+      "updated_at": "2026-11-24T06:44:21Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45342458694",
+      "failed_step": "Build debug APK",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Build debug APK",
+          "started_at": "2026-11-24T06:42:47Z",
+          "completed_at": "2026-11-24T06:44:12Z"
+        }
+      ]
+    },
+    {
+      "run_number": 7,
+      "run_id": 45342474417,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "docs: initialize Streaming changelog",
+      "event": "push",
+      "branch": "main",
+      "sha": "881cc7fd92833e5a8e99e5098e9b71071f2b5909",
+      "created_at": "2026-11-24T06:42:41Z",
+      "updated_at": "2026-11-24T06:44:09Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45342474417",
+      "failed_step": "Build debug APK",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Build debug APK",
+          "started_at": "2026-11-24T06:42:55Z",
+          "completed_at": "2026-11-24T06:43:57Z"
+        }
+      ]
+    },
+    {
+      "run_number": 8,
+      "run_id": 45342480273,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "ci: pass build version into signed Android release",
+      "event": "push",
+      "branch": "main",
+      "sha": "3c33d1ee997aa937f99232d8919b21b837b490d6",
+      "created_at": "2026-11-24T06:42:43Z",
+      "updated_at": "2026-11-24T06:44:44Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45342480273",
+      "failed_step": "Build debug APK",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Build debug APK",
+          "started_at": "2026-11-24T06:43:03Z",
+          "completed_at": "2026-11-24T06:44:33Z"
+        }
+      ]
+    },
+    {
+      "run_number": 9,
+      "run_id": 45344852284,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "fix(android): preserve source resource namespace",
+      "event": "push",
+      "branch": "main",
+      "sha": "d6ec986cbc280637431a7083593d35348c25e28c",
+      "created_at": "2026-11-24T07:01:56Z",
+      "updated_at": "2026-11-24T07:04:11Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45344852284",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 10,
+      "run_id": 45344884204,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "ci: publish permanently signed Streaming releases",
+      "event": "push",
+      "branch": "main",
+      "sha": "e504dcccb9b7ef049680d8b778133817727d82dc",
+      "created_at": "2026-11-24T07:02:12Z",
+      "updated_at": "2026-11-24T07:03:14Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45344884204",
+      "failed_step": "Configure permanent Android release signing",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Configure permanent Android release signing",
+          "started_at": "2026-11-24T07:02:31Z",
+          "completed_at": "2026-11-24T07:02:31Z"
+        }
+      ]
+    },
+    {
+      "run_number": 11,
+      "run_id": 45345582534,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "fix(ci): validate and normalize Base64 signing keystore",
+      "event": "push",
+      "branch": "main",
+      "sha": "f86707612e50a290a500bf9fd4511126bf2c3b36",
+      "created_at": "2026-11-24T07:07:35Z",
+      "updated_at": "2026-11-24T07:08:10Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45345582534",
+      "failed_step": "Configure permanent Android release signing",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Configure permanent Android release signing",
+          "started_at": "2026-11-24T07:07:49Z",
+          "completed_at": "2026-11-24T07:07:49Z"
+        }
+      ]
+    },
+    {
+      "run_number": 12,
+      "run_id": 45345597252,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "fix(ci): normalize Base64 secret whitespace correctly",
+      "event": "push",
+      "branch": "main",
+      "sha": "81a757b182db97b6ecabe9791faa176115e4d06f",
+      "created_at": "2026-11-24T07:07:43Z",
+      "updated_at": "2026-11-24T07:36:54Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45345597252",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 13,
+      "run_id": 45351754570,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "Request camera permissions only when opening camera streaming",
+      "event": "push",
+      "branch": "main",
+      "sha": "412d6cd56640ae379c15529f30a9639e205c8f08",
+      "created_at": "2026-11-24T07:55:27Z",
+      "updated_at": "2026-11-24T08:00:01Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45351754570",
+      "failed_step": "Commit successful build changelog and update manifest",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Commit successful build changelog and update manifest",
+          "started_at": "2026-11-24T07:59:36Z",
+          "completed_at": "2026-11-24T07:59:37Z"
+        }
+      ]
+    },
+    {
+      "run_number": 14,
+      "run_id": 45351758624,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "Request screen streaming microphone permission on demand",
+      "event": "push",
+      "branch": "main",
+      "sha": "1d9ede9ca878142d9b876ec037ab605367305df7",
+      "created_at": "2026-11-24T07:55:29Z",
+      "updated_at": "2026-11-24T07:55:32Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45351758624",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 15,
+      "run_id": 45351762933,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "Disable automatic app data backups",
+      "event": "push",
+      "branch": "main",
+      "sha": "bffef51bd5debbc6fa9a4db4db71eb3be0f1637e",
+      "created_at": "2026-11-24T07:55:31Z",
+      "updated_at": "2026-11-24T08:03:07Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45351762933",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 16,
+      "run_id": 45353177604,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "feat(ui): add Home and Info tabs",
+      "event": "push",
+      "branch": "main",
+      "sha": "383b993a01d2586f55fca6f4ddb454da14b08336",
+      "created_at": "2026-11-24T08:05:59Z",
+      "updated_at": "2026-11-24T08:07:10Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353177604",
+      "failed_step": "Build signed release APK",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Build signed release APK",
+          "started_at": "2026-11-24T08:06:17Z",
+          "completed_at": "2026-11-24T08:07:04Z"
+        }
+      ]
+    },
+    {
+      "run_number": 17,
+      "run_id": 45353181982,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "feat(app): add release update checker and changelog",
+      "event": "push",
+      "branch": "main",
+      "sha": "91aebb23a2406a262b28659b0047fedbba500f8f",
+      "created_at": "2026-11-24T08:06:00Z",
+      "updated_at": "2026-11-24T08:06:05Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353181982",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 18,
+      "run_id": 45353189489,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "chore(ci): append every build to releases history",
+      "event": "push",
+      "branch": "main",
+      "sha": "68ec9e6a6d3ffbfcbed972b3c5dfeae5e094f1fc",
+      "created_at": "2026-11-24T08:06:03Z",
+      "updated_at": "2026-11-24T08:06:06Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353189489",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 19,
+      "run_id": 45353191902,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "docs(releases): add central build changelog",
+      "event": "push",
+      "branch": "main",
+      "sha": "63bba5e47feddaeac4ddcd24b07d0c4cc752fbd8",
+      "created_at": "2026-11-24T08:06:05Z",
+      "updated_at": "2026-11-24T08:06:08Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353191902",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 20,
+      "run_id": 45353197723,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "style(ui): add Info card background",
+      "event": "push",
+      "branch": "main",
+      "sha": "6ad1df942a0be9d400b41c7c9ce01f9359c3b2f7",
+      "created_at": "2026-11-24T08:06:07Z",
+      "updated_at": "2026-11-24T08:06:10Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353197723",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 21,
+      "run_id": 45353202449,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "style(ui): add GitHub logo",
+      "event": "push",
+      "branch": "main",
+      "sha": "508710f46f876a71a56fe9a9e38b7b446ca002d5",
+      "created_at": "2026-11-24T08:06:09Z",
+      "updated_at": "2026-11-24T08:06:42Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353202449",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 22,
+      "run_id": 45353275252,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "feat(updates): allow user-confirmed APK installation",
+      "event": "push",
+      "branch": "main",
+      "sha": "c4d7e82773548272a7b5149dc597b2c8375b747b",
+      "created_at": "2026-11-24T08:06:41Z",
+      "updated_at": "2026-11-24T08:06:44Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353275252",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 23,
+      "run_id": 45353281714,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "fix(ui): initialize Home tab as selected",
+      "event": "push",
+      "branch": "main",
+      "sha": "d85d3bd6864c0cc15f00536246adfc3b6d4df875",
+      "created_at": "2026-11-24T08:06:43Z",
+      "updated_at": "2026-11-24T08:09:44Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45353281714",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 24,
+      "run_id": 45355826375,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "fix(screen): defer microphone initialization until permission and add…",
+      "event": "push",
+      "branch": "main",
+      "sha": "534560c4392e8f1e0cd4b4e5d069e87120319ec3",
+      "created_at": "2026-11-24T08:24:24Z",
+      "updated_at": "2026-11-24T08:26:33Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45355826375",
+      "failed_step": "Build signed release APK",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Build signed release APK",
+          "started_at": "2026-11-24T08:24:39Z",
+          "completed_at": "2026-11-24T08:26:27Z"
+        }
+      ]
+    },
+    {
+      "run_number": 25,
+      "run_id": 45355871826,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "fix(screen): import deferred silent audio source",
+      "event": "push",
+      "branch": "main",
+      "sha": "f2326da3535ede46c4ac93c05d46d9cf82c3787d",
+      "created_at": "2026-11-24T08:24:44Z",
+      "updated_at": "2026-11-24T08:28:47Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45355871826",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 26,
+      "run_id": 45358135015,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "fix(screen): add stop action and validate stream protocol; improve in…",
+      "event": "push",
+      "branch": "main",
+      "sha": "8a625499ee12322c5ca8cba461af9e7e09d5b2bf",
+      "created_at": "2026-11-24T08:40:09Z",
+      "updated_at": "2026-11-24T08:43:24Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45358135015",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 27,
+      "run_id": 45361906194,
+      "status": "completed",
+      "conclusion": "failure",
+      "display_title": "fix(android): stabilize updates and SCREEN capture; unify Home buttons",
+      "event": "push",
+      "branch": "main",
+      "sha": "ff6e0a25df31a0a9d347dbf4e5b26c11e6255a34",
+      "created_at": "2026-11-24T09:05:40Z",
+      "updated_at": "2026-11-24T09:08:42Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45361906194",
+      "failed_step": "Commit successful build changelog and update manifest",
+      "failed_steps": [
+        {
+          "job": "build",
+          "step": "Commit successful build changelog and update manifest",
+          "started_at": "2026-11-24T09:08:20Z",
+          "completed_at": "2026-11-24T09:08:21Z"
+        }
+      ]
+    },
+    {
+      "run_number": 28,
+      "run_id": 45362071592,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "display_title": "fix(screen): catch capture and encoder startup failures",
+      "event": "push",
+      "branch": "main",
+      "sha": "75d3a0934508165f6098649598f15c5c4ea793fa",
+      "created_at": "2026-11-24T09:06:43Z",
+      "updated_at": "2026-11-24T09:07:11Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45362071592",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 29,
+      "run_id": 45362142077,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "fix(screen): start typed projection service before retrieving token",
+      "event": "push",
+      "branch": "main",
+      "sha": "e1cd33d2f76cde2a7f82df644e38801fd8b281d4",
+      "created_at": "2026-11-24T09:07:09Z",
+      "updated_at": "2026-11-24T09:12:06Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45362142077",
+      "failed_step": null,
+      "failed_steps": []
+    },
+    {
+      "run_number": 30,
+      "run_id": 45940169233,
+      "status": "completed",
+      "conclusion": "success",
+      "display_title": "chore(build): add independent build registry workflow",
+      "event": "push",
+      "branch": "main",
+      "sha": "27b8ea212da8f9b33ef702b329182555da7f564f",
+      "created_at": "2026-11-27T04:28:48Z",
+      "updated_at": "2026-11-27T04:31:38Z",
+      "run_url": "https://github.com/Tinchodoko/Streaming/actions/runs/45940169233",
+      "failed_step": null,
+      "failed_steps": []
+    }
+  ]
+}
