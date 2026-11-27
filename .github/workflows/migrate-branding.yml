@@ -119,8 +119,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          if git grep -ni "pedro" -- ':!LICENSE' ':!LICENSE.txt'; then
-            echo "::error::Pedro references remain outside preserved license attribution."
+          remaining="$(git grep -ni "pedro" -- ':!LICENSE' ':!LICENSE.txt' || true)"
+          non_legal="$(printf '%s\n' "$remaining" | grep -viE 'copyright|licen[cs]e' || true)"
+          if [ -n "$non_legal" ]; then
+            printf '%s\n' "$non_legal"
+            echo "::error::Pedro references remain outside preserved license/copyright attribution."
             exit 1
           fi
 
@@ -137,5 +140,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
+          git stash push -u -m "branding-migration"
+          git pull --rebase origin main
+          git stash pop
+          git add -A
+          git rm -f .github/workflows/migrate-branding.yml
           git commit -m "refactor(branding): migrate Pedro references to Tinchodoko [skip branding migration]"
           git push origin main
